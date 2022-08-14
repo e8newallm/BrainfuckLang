@@ -1,77 +1,85 @@
 %{
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+#include <string>
 
 extern int yylex();
 extern int yyparse();
 extern FILE* yyin;
 
 void yyerror(const char* s);
+
+#include "metadata.h"
+#include "process.h"
+
 %}
+
+%code requires {
+    #include <iostream>
+
+    struct charSize {
+        char* pointer; 
+        int size;
+        charSize(char* pointerIn, int sizeIn) {pointer = pointerIn; size = sizeIn;};
+    };
+}
 
 %union {
 	int ival;
 	float fval;
+    charSize* sval;
 }
 
 %token<ival> T_INT
 %token<fval> T_FLOAT
-%token T_PLUS T_MINUS T_MULTIPLY T_DIVIDE T_LEFT T_RIGHT
-%token T_NEWLINE T_QUIT
-%left T_PLUS T_MINUS
-%left T_MULTIPLY T_DIVIDE
+%token<sval> T_TEXT T_CSTRING
 
-%type<ival> expression
-%type<fval> mixed_expression
+%token T_PLUS T_MINUS T_ASTERISK T_BACKSLASH T_LPAREN T_RPAREN T_EQUALS T_QUOTE
+%token T_NEWLINE T_SEMICOLON
 
-%start calculation
+%token INT STDSTRING
+
+%start program
 
 %%
 
-calculation:
-	   | calculation line
-;
+program: statement T_SEMICOLON program
+	   | statement T_SEMICOLON;
 
-line: T_NEWLINE
-    | mixed_expression T_NEWLINE { printf("\tResult: %f\n", $1);}
-    | expression T_NEWLINE { printf("\tResult: %i\n", $1); }
-    | T_QUIT T_NEWLINE { printf("bye!\n"); exit(0); }
-;
+statement: varDec;
 
-mixed_expression: T_FLOAT                 		 { $$ = $1; }
-	  | mixed_expression T_PLUS mixed_expression	 { $$ = $1 + $3; }
-	  | mixed_expression T_MINUS mixed_expression	 { $$ = $1 - $3; }
-	  | mixed_expression T_MULTIPLY mixed_expression { $$ = $1 * $3; }
-	  | mixed_expression T_DIVIDE mixed_expression	 { $$ = $1 / $3; }
-	  | T_LEFT mixed_expression T_RIGHT		 { $$ = $2; }
-	  | expression T_PLUS mixed_expression	 	 { $$ = $1 + $3; }
-	  | expression T_MINUS mixed_expression	 	 { $$ = $1 - $3; }
-	  | expression T_MULTIPLY mixed_expression 	 { $$ = $1 * $3; }
-	  | expression T_DIVIDE mixed_expression	 { $$ = $1 / $3; }
-	  | mixed_expression T_PLUS expression	 	 { $$ = $1 + $3; }
-	  | mixed_expression T_MINUS expression	 	 { $$ = $1 - $3; }
-	  | mixed_expression T_MULTIPLY expression 	 { $$ = $1 * $3; }
-	  | mixed_expression T_DIVIDE expression	 { $$ = $1 / $3; }
-	  | expression T_DIVIDE expression		 { $$ = $1 / (float)$3; }
-;
+varDec: intDec | strDec;
 
-expression: T_INT				{ $$ = $1; }
-	  | expression T_PLUS expression	{ $$ = $1 + $3; }
-	  | expression T_MINUS expression	{ $$ = $1 - $3; }
-	  | expression T_MULTIPLY expression	{ $$ = $1 * $3; }
-	  | T_LEFT expression T_RIGHT		{ $$ = $2; }
-;
+strDec: STDSTRING T_TEXT 
+        {
+            stringTable.push_back(new varEntry<std::string>(std::string($2->pointer, $2->size), std::string("TEST")));
+            delete((charSize*)$2);
+        }
+
+      | STDSTRING T_TEXT T_EQUALS T_CSTRING
+        {
+            stringTable.push_back(new varEntry<std::string>(std::string($2->pointer, $2->size), std::string($4->pointer, $4->size)));
+            delete((charSize*)$2);
+            delete((charSize*)$4);
+        };
+
+
+intDec: INT T_TEXT 
+        {integerTable.push_back(new varEntry<int>(std::string($2->pointer, $2->size), 0)); delete((charSize*)$2);}
+
+      | INT T_TEXT T_EQUALS T_INT 
+        {integerTable.push_back(new varEntry<int>(std::string($2->pointer, $2->size), $4)); delete((charSize*)$2);};
 
 %%
 
 int main() {
 	yyin = stdin;
+	yyparse();
+    processData();
+    std::string result = generateBrainfuck();
 
-	do {
-		yyparse();
-	} while(!feof(yyin));
-
+    std::cout << "THE RESULT:\r\n";
+    std::cout << result;
 	return 0;
 }
 
