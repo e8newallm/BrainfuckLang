@@ -1,0 +1,6 @@
+.vscode
+lex.yy.c
+parse.output
+parse.tab.c
+parse.tab.h
+parse
