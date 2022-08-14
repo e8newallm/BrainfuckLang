@@ -52,23 +52,23 @@ varDec: intDec | strDec;
 
 strDec: STDSTRING T_TEXT 
         {
-            stringTable.push_back(new varEntry<std::string>(std::string($2->pointer, $2->size), std::string("TEST")));
+            stringTable.push_back(new VarEntry<std::string>(std::string($2->pointer, $2->size), std::string("TEST")));
             delete((charSize*)$2);
         }
 
       | STDSTRING T_TEXT T_EQUALS T_CSTRING
         {
-            stringTable.push_back(new varEntry<std::string>(std::string($2->pointer, $2->size), std::string($4->pointer, $4->size)));
+            stringTable.push_back(new VarEntry<std::string>(std::string($2->pointer, $2->size), std::string($4->pointer, $4->size)));
             delete((charSize*)$2);
             delete((charSize*)$4);
         };
 
 
 intDec: INT T_TEXT 
-        {integerTable.push_back(new varEntry<int>(std::string($2->pointer, $2->size), 0)); delete((charSize*)$2);}
+        {integerTable.push_back(new VarEntry<int>(std::string($2->pointer, $2->size), 0)); delete((charSize*)$2);}
 
       | INT T_TEXT T_EQUALS T_INT 
-        {integerTable.push_back(new varEntry<int>(std::string($2->pointer, $2->size), $4)); delete((charSize*)$2);};
+        {integerTable.push_back(new VarEntry<int>(std::string($2->pointer, $2->size), $4)); delete((charSize*)$2);};
 
 %%
 

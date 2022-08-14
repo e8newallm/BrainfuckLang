@@ -6,8 +6,8 @@
 
 #include "metadata.h"
 
-extern std::vector<varEntry<int>*> integerTable;
-extern std::vector<varEntry<std::string>*> stringTable;
+extern std::vector<VarEntry<int>*> integerTable;
+extern std::vector<VarEntry<std::string>*> stringTable;
 
 void processData();
 std::string generateBrainfuck();
