@@ -8,7 +8,6 @@ std::vector<varEntry<std::string>*> stringTable;
 
 void processData()
 {
-
     int positionAssigner = 0;
     for(varEntry<int>* entry : integerTable)
     {
@@ -22,7 +21,7 @@ void processData()
         std::cout << "Entry: " << *entry << "\r\n";
         std::cout << "string size: " << entry->initialValue.size() << "\r\n";
         entry->setPosition(positionAssigner);
-        positionAssigner+=entry->initialValue.size();
+        positionAssigner+=entry->initialValue.size() + 2;
         positionAssigner++;
     }
 }
@@ -35,13 +34,15 @@ std::string printMessage(int position = 0)
     
     if(currentPos > position)
     {
-        std::cout << "currentPos - position: " << currentPos - position << "\r\n";
-        return std::string(currentPos - position, '<') + "[.>]";
+        int distance = currentPos - position;
+        currentPos -= distance;
+        return std::string(distance, '<') + ">>[.>]<[<]<";
     }
     else
     {
-        std::cout << "position - currentPos: " << position - currentPos << "\r\n";
-        return std::string(position - currentPos, '>') + "[.>]";
+        int distance = position - currentPos;
+        currentPos += distance;
+        return std::string(distance, '>') + ">>[.>]<[<]<";
     }
 }
 
@@ -51,11 +52,23 @@ std::string generateBrainfuck()
 
     // Initial setup
     std::cout << "Setting up init variables...\r\n";
+
+    for(varEntry<int>* entry : integerTable)
+    {
+        std::cout << "Entry: " << *entry << "\r\n";
+        finalCode += std::string(entry->getPosition() - currentPos, '>');
+        currentPos += entry->getPosition() - currentPos;
+        finalCode += std::string(entry->initialValue, '+');
+    }
+
     for(varEntry<std::string>* entry : stringTable)
     {
         std::cout << "Entry: " << *entry << "\r\n";
         finalCode += std::string(entry->getPosition() - currentPos, '>');
         currentPos += entry->getPosition() - currentPos;
+        finalCode += std::string(entry->initialValue.size(), '+');
+        finalCode += ">>";
+        currentPos+= 2;
         for(int i = 0; i < entry->initialValue.size(); i++)
         {
             std::cout << "character " << i << ": " << (int)entry->initialValue[i] << "\r\n";
@@ -63,10 +76,11 @@ std::string generateBrainfuck()
             finalCode += ">";
             currentPos++;
         }
-        
     }
-
-    finalCode += printMessage(15);
+    std::cout << "Currentpos: " << currentPos << "\r\n";
+    finalCode += printMessage(17);
+    std::cout << "Currentpos: " << currentPos << "\r\n";
+    finalCode += printMessage(2);
 
     return finalCode;
 }
