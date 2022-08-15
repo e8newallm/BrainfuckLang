@@ -22,10 +22,12 @@
 ")"		    {return T_RPAREN;}
 ";"         {return T_SEMICOLON;}
 "="         {return T_EQUALS;}
+"<<"        {return T_OUTPUT;}
 
 "int"               {return INT;}
 "std::string"       {return STDSTRING;}
+"std::cout"         {return STDCOUT;}
 
-["].*["]   {yylval.sval = new charSize(yytext+1, yyleng-2); return T_CSTRING;}
+["]([^"]|\\\")*([^\\]["])   {std::cout << "cstring: " << yytext << "\r\n"; yylval.sval = new charSize(yytext+1, yyleng-2); return T_CSTRING;}
 [A-Za-z]+           {yylval.sval = new charSize(yytext, yyleng); return T_TEXT;}
 %%

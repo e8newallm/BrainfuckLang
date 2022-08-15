@@ -30,6 +30,7 @@ std::string PointerMovement::relativePointer(int delta)
         currentPos += delta;
         return std::string(delta, '>');
     }
+    return "";
 }
 
 int PointerMovement::getPointer()

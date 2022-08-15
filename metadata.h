@@ -15,16 +15,6 @@ template<typename T> class VarEntry
         varName = varNameIn;
         initialValue = initialValueIn;
     }
-
-    void setPosition(int position)
-    {
-        memoryPosition = position;
-    }
-
-    int getPosition()
-    {
-        return memoryPosition;
-    }
 };
 
 template<class T> inline std::ostream& operator<<(std::ostream& out, const VarEntry<T>& val){
