@@ -19,5 +19,5 @@ std::string CoutCString::process()
             result = printMessage(entry->memoryPosition);
         }
     }
-    return result + childNode[0]->process();
+    return result + "\r\n" + childNode[0]->process();
 };
