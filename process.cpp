@@ -123,7 +123,7 @@ std::string generateBrainfuck()
     for(VarEntry<std::string>* entry : cstringTable)
     {
         std::cout << "Entry: " << *entry << "\r\n";
-        finalCode += entry->varName + ": ";
+        finalCode += "string variable \"" + entry->varName + "\": ";
         finalCode += pointerPos.movePointer(entry->memoryPosition);
         finalCode += std::string(entry->initialValue.size(), '+');
         finalCode += pointerPos.relativePointer(2);
@@ -138,7 +138,7 @@ std::string generateBrainfuck()
     for(VarEntry<int>* entry : integerTable)
     {
         std::cout << "Entry: " << *entry << "\r\n";
-        finalCode += entry->varName + ": ";
+        finalCode += "integer variable\"" + entry->varName + "\": ";
         finalCode += pointerPos.movePointer(entry->memoryPosition);
         finalCode += std::string(entry->initialValue, '+') + "\r\n";
     }
@@ -146,7 +146,7 @@ std::string generateBrainfuck()
     for(VarEntry<std::string>* entry : stringTable)
     {
         std::cout << "Entry: " << *entry << "\r\n";
-        finalCode += entry->varName + ": ";
+        finalCode += "const string \"" + entry->varName + "\": ";
         finalCode += pointerPos.movePointer(entry->memoryPosition);
         finalCode += std::string(entry->initialValue.size(), '+');
         finalCode += pointerPos.relativePointer(2);
