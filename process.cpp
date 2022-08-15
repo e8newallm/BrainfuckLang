@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <regex>
 
 #include "metadata.h"
 #include "pointermovement.h"
@@ -40,6 +41,71 @@ void processData()
         positionAssigner += entry->initialValue.size() + 2;
         positionAssigner++;
     }
+}
+
+void findAndReplaceAll(std::string & data, std::string toSearch, std::string replaceStr)
+{
+    // Get the first occurrence
+    size_t pos = data.find(toSearch);
+    // Repeat till end is reached
+    while( pos != std::string::npos)
+    {
+        // Replace this occurrence of Sub String
+        data.replace(pos, toSearch.size(), replaceStr);
+        // Get the next occurrence from the current position
+        pos =data.find(toSearch, pos + replaceStr.size());
+    }
+}
+
+std::string beautify(std::string finalCode)
+{
+    std::regex movReg("([>]+[<]+|[<]+[>]+)+[<>]*");
+    std::smatch match;
+    while(std::regex_search(finalCode, match, movReg))
+    {
+        int count = 0;
+        std::string replace = match[0];
+        std::string newString = "";
+        for (int i = 0; i < replace.size(); i++)
+        {
+            if (replace[i] == '>') count++;
+            else if(replace[i] == '<') count--;
+        }
+        if(count > 0)
+        {
+            newString = std::string(count, '>');
+        }
+        else
+        {
+            newString = std::string(-count, '<');
+        }
+        findAndReplaceAll(finalCode, replace, newString);
+    }
+
+    std::regex movReg("([+]+[-]+|[-]+[+]+)+[+-]*");
+    std::smatch match;
+    while(std::regex_search(finalCode, match, movReg))
+    {
+        int count = 0;
+        std::string replace = match[0];
+        std::string newString = "";
+        for (int i = 0; i < replace.size(); i++)
+        {
+            if (replace[i] == '+') count++;
+            else if(replace[i] == '-') count--;
+        }
+        if(count > 0)
+        {
+            newString = std::string(count, '+');
+        }
+        else
+        {
+            newString = std::string(-count, '-');
+        }
+        findAndReplaceAll(finalCode, replace, newString);
+    }
+    
+    return finalCode;
 }
 
 std::string printMessage(int position = 0)
@@ -90,6 +156,8 @@ std::string generateBrainfuck()
     }
 
     finalCode += start->process();
+
+    finalCode = beautify(finalCode);
 
     //std::cout << "Currentpos: " << pointerPos.getPointer() << "\r\n";
     //finalCode += printMessage(17);

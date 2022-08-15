@@ -17,5 +17,6 @@ extern ParseTree* start;
 
 void processData();
 std::string generateBrainfuck();
+std::string beautify(std::string finalCode);
 std::string printMessage(int position);
 #endif //PROCESS_H
