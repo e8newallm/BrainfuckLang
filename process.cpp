@@ -9,6 +9,7 @@
 std::vector<VarEntry<int>*> integerTable;
 std::vector<VarEntry<std::string>*> stringTable;
 std::vector<VarEntry<std::string>*> cstringTable;
+std::vector<std::string> varNamesTable;
 
 PointerMovement pointerPos;
 ParseTree* start;
@@ -112,6 +113,11 @@ std::string printMessage(int position = 0)
     return pointerPos.movePointer(position) + ">>[.>]<[<]<";
 }
 
+std::string print(int position = 0)
+{
+    return pointerPos.movePointer(position) + ">>[.>]<[<]<";
+}
+
 std::string generateBrainfuck()
 {
     std::string finalCode = "";
@@ -159,10 +165,8 @@ std::string generateBrainfuck()
     }
 
     finalCode += "\r\n\r\n";
-
     finalCode += start->process();
-
-    finalCode = beautify(finalCode);
+    //finalCode = beautify(finalCode);
 
     //std::cout << "Currentpos: " << pointerPos.getPointer() << "\r\n";
     //finalCode += printMessage(17);
