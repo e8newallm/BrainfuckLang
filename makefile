@@ -6,10 +6,8 @@ parse.tab.c parse.tab.h: metadata.h parse.y
 lex.yy.c: parse.l parse.tab.h
 	flex parse.l
 
-
-
-parse: lex.yy.c parse.tab.c parse.tab.h process.cpp process.h pointermovement.h pointermovement.cpp parsetree/*.cpp
-	g++ -o parse parse.tab.c lex.yy.c process.cpp pointermovement.cpp parsetree/*.cpp
+parse: lex.yy.c parse.tab.c parse.tab.h process.cpp process.h parsetree/*.cpp
+	g++ -o parse parse.tab.c lex.yy.c process.cpp parsetree/*.cpp
 
 clean:
 	rm parse parse.tab.c lex.yy.c parse.tab.h parse.output

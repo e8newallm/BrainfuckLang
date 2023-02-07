@@ -1,0 +1,3 @@
+string strTest = "Three ";
+string strTestTwo = "Five ";
+print << "One " << "Two " << strTest << "Four " << strTest << "Six ";

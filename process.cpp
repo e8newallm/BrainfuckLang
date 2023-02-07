@@ -3,58 +3,77 @@
 #include <regex>
 
 #include "metadata.h"
-#include "pointermovement.h"
 #include "parsetree/parsetree.h"
+#include "process.h"
+
+int maxSumLevels = 0;
+int currentSumLevels = 0;
 
 std::vector<VarEntry<int>*> integerTable;
 std::vector<VarEntry<std::string>*> stringTable;
 std::vector<VarEntry<std::string>*> cstringTable;
 std::vector<std::string> varNamesTable;
-
-PointerMovement pointerPos;
 ParseTree* start;
+
+std::string movRight(uint64_t delta)
+{
+    return std::string(delta, '>');
+}
+
+std::string movLeft(uint64_t delta)
+{
+    return std::string(delta, '<');
+}
+
+std::string movTmp(std::string scope, uint64_t delta)
+{
+    return movRight(delta) + scope + movLeft(delta);
+}
+
+std::string inc(uint64_t amount)
+{
+    return std::string(amount, '+');
+}
+
+std::string dec(uint64_t amount)
+{
+    return std::string(amount, '-');
+}
 
 void processData()
 {
     int positionAssigner = 0;
 
-    for(VarEntry<std::string>* entry : cstringTable)
-    {
-        std::cout << "Entry: " << *entry << "\r\n";
-        std::cout << "string size: " << entry->initialValue.size() << "\r\n";
-        entry->memoryPosition = positionAssigner;
-        positionAssigner += entry->initialValue.size() + 2;
-        positionAssigner++;
-    }
-
     for(VarEntry<int>* entry : integerTable)
     {
-        std::cout << "Entry: " << *entry << "\r\n";
         entry->memoryPosition = positionAssigner;
+        positionAssigner += 10;
+    }
+
+    positionAssigner++; //null character for start of string
+
+    for(VarEntry<std::string>* entry : cstringTable)
+    {
+        entry->memoryPosition = positionAssigner;
+        positionAssigner += entry->initialValue.size();
         positionAssigner++;
     }
 
     for(VarEntry<std::string>* entry : stringTable)
     {
-        std::cout << "Entry: " << *entry << "\r\n";
-        std::cout << "string size: " << entry->initialValue.size() << "\r\n";
         entry->memoryPosition = positionAssigner;
-        positionAssigner += entry->initialValue.size() + 2;
+        positionAssigner += entry->initialValue.size();
         positionAssigner++;
     }
 }
 
-void findAndReplaceAll(std::string & data, std::string toSearch, std::string replaceStr)
+void findAndReplaceAll(std::string& data, std::string toSearch, std::string replaceStr)
 {
-    // Get the first occurrence
     size_t pos = data.find(toSearch);
-    // Repeat till end is reached
-    while( pos != std::string::npos)
+    while(pos != std::string::npos)
     {
-        // Replace this occurrence of Sub String
         data.replace(pos, toSearch.size(), replaceStr);
-        // Get the next occurrence from the current position
-        pos =data.find(toSearch, pos + replaceStr.size());
+        pos = data.find(toSearch, pos + replaceStr.size());
     }
 }
 
@@ -74,11 +93,11 @@ std::string beautify(std::string finalCode)
         }
         if(count > 0)
         {
-            newString = std::string(count, '>');
+            newString = movRight(count);
         }
         else
         {
-            newString = std::string(-count, '<');
+            newString = movLeft(-count);
         }
         findAndReplaceAll(finalCode, replace, newString);
     }
@@ -110,12 +129,7 @@ std::string beautify(std::string finalCode)
 
 std::string printMessage(int position = 0)
 {
-    return pointerPos.movePointer(position) + ">>[.>]<[<]<";
-}
-
-std::string print(int position = 0)
-{
-    return pointerPos.movePointer(position) + ">>[.>]<[<]<";
+    return movTmp("[.>]<[<]>", position);
 }
 
 std::string generateBrainfuck()
@@ -123,55 +137,45 @@ std::string generateBrainfuck()
     std::string finalCode = "";
 
     // Initial setup
-    std::cout << "Setting up init variables...\r\n";
     finalCode += "Setting up global variables\r\n\r\n";
-
-    for(VarEntry<std::string>* entry : cstringTable)
-    {
-        std::cout << "Entry: " << *entry << "\r\n";
-        finalCode += "string variable \"" + entry->varName + "\": ";
-        finalCode += pointerPos.movePointer(entry->memoryPosition);
-        finalCode += std::string(entry->initialValue.size(), '+');
-        finalCode += pointerPos.relativePointer(2);
-        for(int i = 0; i < entry->initialValue.size(); i++)
-        {
-            std::cout << "character " << i << ": " << (int)entry->initialValue[i] << "\r\n";
-            finalCode += std::string((int)entry->initialValue[i], '+');
-            finalCode += pointerPos.relativePointer(1) + "\r\n";
-        }
-    }
 
     for(VarEntry<int>* entry : integerTable)
     {
-        std::cout << "Entry: " << *entry << "\r\n";
+        char intChars[10];
+        for(int i = 0; i < 10; i++) intChars[i] = 0;
+        
         finalCode += "integer variable\"" + entry->varName + "\": ";
-        finalCode += pointerPos.movePointer(entry->memoryPosition);
-        finalCode += std::string(entry->initialValue, '+') + "\r\n";
+        finalCode += movTmp(std::string(entry->initialValue, '+'), entry->memoryPosition) + "\r\n";
+    }
+
+    for(VarEntry<std::string>* entry : cstringTable)
+    {
+        std::string tempCode = "";
+        tempCode += "\r\nstring const \"" + entry->varName + "\": ";
+        for(int i = 0; i < entry->initialValue.size(); i++)
+        {
+            tempCode += std::string((int)entry->initialValue[i], '+');
+            tempCode += movRight(1) + " " + entry->initialValue[i] + "\r\n";
+        }
+        tempCode += movLeft(entry->initialValue.size());
+        finalCode += movTmp(tempCode, entry->memoryPosition);
     }
 
     for(VarEntry<std::string>* entry : stringTable)
     {
-        std::cout << "Entry: " << *entry << "\r\n";
-        finalCode += "const string \"" + entry->varName + "\": ";
-        finalCode += pointerPos.movePointer(entry->memoryPosition);
-        finalCode += std::string(entry->initialValue.size(), '+');
-        finalCode += pointerPos.relativePointer(2);
+        std::string tempCode = "";
+        tempCode += "\r\nstring variable \"" + entry->varName + "\": ";
         for(int i = 0; i < entry->initialValue.size(); i++)
         {
-            std::cout << "character " << i << ": " << (int)entry->initialValue[i] << "\r\n";
-            finalCode += std::string((int)entry->initialValue[i], '+');
-            finalCode += pointerPos.relativePointer(1) + "\r\n";
+            tempCode += std::string((int)entry->initialValue[i], '+');
+            tempCode += movRight(1) + " " + entry->initialValue[i] + "\r\n";
         }
+        tempCode += movLeft(entry->initialValue.size());
+        finalCode += movTmp(tempCode, entry->memoryPosition);
     }
 
     finalCode += "\r\n\r\n";
     finalCode += start->process();
-    //finalCode = beautify(finalCode);
-
-    //std::cout << "Currentpos: " << pointerPos.getPointer() << "\r\n";
-    //finalCode += printMessage(17);
-    //std::cout << "Currentpos: " << pointerPos.getPointer() << "\r\n";
-    //finalCode += printMessage(2);
-
+    finalCode = beautify(finalCode);
     return finalCode;
 }
