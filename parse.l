@@ -25,7 +25,7 @@
 "="                         {return T_EQUALS;}
 "<<"                        {return T_OUTPUT;}
 
-"int"                       {return INT;}
+"number"                       {return NUMBER;}
 "string"                    {return STRING;}
 "print"                     {return PRINT;}
 

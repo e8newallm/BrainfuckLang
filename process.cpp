@@ -9,7 +9,7 @@
 int maxSumLevels = 0;
 int currentSumLevels = 0;
 
-std::vector<VarEntry<int>*> integerTable;
+std::vector<VarEntry<int>*> numberTable;
 std::vector<VarEntry<std::string>*> stringTable;
 std::vector<VarEntry<std::string>*> cstringTable;
 std::vector<std::string> varNamesTable;
@@ -44,10 +44,10 @@ void processData()
 {
     int positionAssigner = 0;
 
-    for(VarEntry<int>* entry : integerTable)
+    for(VarEntry<int>* entry : numberTable)
     {
         entry->memoryPosition = positionAssigner;
-        positionAssigner += 10;
+        positionAssigner += 4;
     }
 
     positionAssigner++; //null character for start of string
@@ -137,15 +137,17 @@ std::string generateBrainfuck()
     std::string finalCode = "";
 
     // Initial setup
-    finalCode += "Setting up global variables\r\n\r\n";
+    finalCode += "Setting up global variables\r\n";
 
-    for(VarEntry<int>* entry : integerTable)
+    for(VarEntry<int>* entry : numberTable)
     {
-        char intChars[10];
-        for(int i = 0; i < 10; i++) intChars[i] = 0;
-        
-        finalCode += "integer variable\"" + entry->varName + "\": ";
-        finalCode += movTmp(std::string(entry->initialValue, '+'), entry->memoryPosition) + "\r\n";
+        std::string tempCode = "";
+        tempCode += "integer variable \"" + entry->varName + "\": ";
+        tempCode += std::string((entry->initialValue >> 24) & 0xFF, '+') + movRight(1) + "\r\n";
+        tempCode += std::string((entry->initialValue >> 16) & 0xFF, '+') + movRight(1) + "\r\n";
+        tempCode += std::string((entry->initialValue >>  8) & 0xFF, '+') + movRight(1) + "\r\n";
+        tempCode += std::string((entry->initialValue >>  0) & 0xFF, '+') + movLeft(3)  + "\r\n";
+        finalCode += movTmp(tempCode, entry->memoryPosition);
     }
 
     for(VarEntry<std::string>* entry : cstringTable)

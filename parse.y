@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <fstream>
 
 extern int yylex();
 extern int yyparse();
@@ -40,7 +41,7 @@ void yyerror(const char* s);
 %token T_PLUS T_MINUS T_ASTERISK T_BACKSLASH T_LPAREN T_RPAREN T_EQUALS T_QUOTE T_OUTPUT
 %token T_NEWLINE T_SEMICOLON
 
-%token INT STRING PRINT
+%token NUMBER STRING PRINT
 
 %start program
 
@@ -92,7 +93,7 @@ printstatement: {$$ = new ParseTree();}
         }
     }
 
-varDec: strDec;
+varDec: numDec | strDec;
 
 strDec: 
     STRING T_TEXT 
@@ -110,6 +111,20 @@ strDec:
         delete((charSize*)$4);
     };
 
+numDec:
+    NUMBER T_TEXT
+    {
+        numberTable.push_back(new VarEntry<int>(std::string($2->pointer, $2->size), 0));
+        varNamesTable.push_back(std::string($2->pointer, $2->size));
+        delete((charSize*)$2);
+    }
+
+    | NUMBER T_TEXT T_EQUALS T_INT
+    {
+        numberTable.push_back(new VarEntry<int>(std::string($2->pointer, $2->size), $4));
+        varNamesTable.push_back(std::string($2->pointer, $2->size));
+        delete((charSize*)$2);
+    };
 %%
 
 int main() {
@@ -117,7 +132,7 @@ int main() {
 	yyparse();
     processData();
     std::string result = generateBrainfuck();
-
+    
     std::cout << result;
 	return 0;
 }

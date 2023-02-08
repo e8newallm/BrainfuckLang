@@ -10,7 +10,7 @@
 extern int maxSumLevels;
 extern int currentSumLevels;
 
-extern std::vector<VarEntry<int>*> integerTable;
+extern std::vector<VarEntry<int>*> numberTable;
 extern std::vector<VarEntry<std::string>*> stringTable;
 extern std::vector<VarEntry<std::string>*> cstringTable;
 
