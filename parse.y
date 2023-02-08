@@ -45,7 +45,7 @@ void yyerror(const char* s);
 
 %start program
 
-%type<tree> program statements statement cout printstatement
+%type<tree> program statements statement printfunc printstatement
 
 %%
 
@@ -57,33 +57,33 @@ statements:
 
 statement: 
     varDec {$$ = new ParseTree();}
-    | cout {$$ = new ParseTree($1);};
+    | printfunc {$$ = new ParseTree($1);};
 
-cout: PRINT printstatement {$$ = new ParseTree($2);};
+printfunc: PRINT printstatement {$$ = new ParseTree($2);};
 
 printstatement: {$$ = new ParseTree();}
     | T_OUTPUT T_CSTRING printstatement
     {
         std::string cstring = std::string($2->pointer, $2->size);
         bool constFound = false;
-        for(VarEntry<std::string>* entry : cstringTable)
+        for(VarEntry* entry : varTable)
         {
             if(entry->varName == cstring)
                 constFound = true;
         }
         if(!constFound)
-            cstringTable.push_back(new VarEntry<std::string>(cstring, cstring));
-        $$ = new CoutCString(cstring, $3);
+            varTable.push_back(new VarEntry(cstring, cstring));
+        $$ = new Print(cstring, $3);
     }
     | T_OUTPUT T_TEXT printstatement
     {
         std::string varName = std::string($2->pointer, $2->size);
         bool varFound = false;
-        for(VarEntry<std::string>* entry : stringTable)
+        for(VarEntry* entry : varTable)
         {
             if(entry->varName == varName)
             {
-                $$ = new CoutString(varName, $3);
+                $$ = new Print(varName, $3);
                 varFound = true;
             }
         }
@@ -98,15 +98,13 @@ varDec: numDec | strDec;
 strDec: 
     STRING T_TEXT 
     {
-        stringTable.push_back(new VarEntry<std::string>(std::string($2->pointer, $2->size), std::string("")));
-        varNamesTable.push_back(std::string($2->pointer, $2->size));
+        varTable.push_back(new VarEntry(std::string($2->pointer, $2->size), std::string("")));
         delete((charSize*)$2);
     }
 
     | STRING T_TEXT T_EQUALS T_CSTRING
     {
-        stringTable.push_back(new VarEntry<std::string>(std::string($2->pointer, $2->size), std::string($4->pointer, $4->size)));
-        varNamesTable.push_back(std::string($2->pointer, $2->size));
+        varTable.push_back(new VarEntry(std::string($2->pointer, $2->size), std::string($4->pointer, $4->size)));
         delete((charSize*)$2);
         delete((charSize*)$4);
     };
@@ -114,15 +112,13 @@ strDec:
 numDec:
     NUMBER T_TEXT
     {
-        numberTable.push_back(new VarEntry<int>(std::string($2->pointer, $2->size), 0));
-        varNamesTable.push_back(std::string($2->pointer, $2->size));
+        varTable.push_back(new VarEntry(std::string($2->pointer, $2->size), 0));
         delete((charSize*)$2);
     }
 
     | NUMBER T_TEXT T_EQUALS T_INT
     {
-        numberTable.push_back(new VarEntry<int>(std::string($2->pointer, $2->size), $4));
-        varNamesTable.push_back(std::string($2->pointer, $2->size));
+        varTable.push_back(new VarEntry(std::string($2->pointer, $2->size), $4));
         delete((charSize*)$2);
     };
 %%

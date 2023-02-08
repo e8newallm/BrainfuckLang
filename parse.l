@@ -11,7 +11,7 @@
 
 %%
 
-"//".*                      {std::cout << "Comment: " << yytext << "\r\n";} //comment
+"//".*                      ; //comment
 [ \t\r\n]	                ; // ignore all whitespace
 [0-9]+\.[0-9]+ 	            {yylval.fval = atof(yytext); return T_FLOAT;}
 [0-9]+	    	            {yylval.ival = atoi(yytext); return T_INT;}
@@ -25,7 +25,7 @@
 "="                         {return T_EQUALS;}
 "<<"                        {return T_OUTPUT;}
 
-"number"                       {return NUMBER;}
+"number"                    {return NUMBER;}
 "string"                    {return STRING;}
 "print"                     {return PRINT;}
 

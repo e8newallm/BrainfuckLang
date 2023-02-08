@@ -9,61 +9,32 @@
 int maxSumLevels = 0;
 int currentSumLevels = 0;
 
-std::vector<VarEntry<int>*> numberTable;
-std::vector<VarEntry<std::string>*> stringTable;
-std::vector<VarEntry<std::string>*> cstringTable;
+std::vector<VarEntry*> varTable;
 std::vector<std::string> varNamesTable;
 ParseTree* start;
-
-std::string movRight(uint64_t delta)
-{
-    return std::string(delta, '>');
-}
-
-std::string movLeft(uint64_t delta)
-{
-    return std::string(delta, '<');
-}
-
-std::string movTmp(std::string scope, uint64_t delta)
-{
-    return movRight(delta) + scope + movLeft(delta);
-}
-
-std::string inc(uint64_t amount)
-{
-    return std::string(amount, '+');
-}
-
-std::string dec(uint64_t amount)
-{
-    return std::string(amount, '-');
-}
 
 void processData()
 {
     int positionAssigner = 0;
 
-    for(VarEntry<int>* entry : numberTable)
+    for(VarEntry* entry : varTable)
     {
-        entry->memoryPosition = positionAssigner;
-        positionAssigner += 4;
-    }
-
-    positionAssigner++; //null character for start of string
-
-    for(VarEntry<std::string>* entry : cstringTable)
-    {
-        entry->memoryPosition = positionAssigner;
-        positionAssigner += entry->initialValue.size();
-        positionAssigner++;
-    }
-
-    for(VarEntry<std::string>* entry : stringTable)
-    {
-        entry->memoryPosition = positionAssigner;
-        positionAssigner += entry->initialValue.size();
-        positionAssigner++;
+        switch(entry->valType)
+        {
+            case number:
+            {
+                entry->memoryPosition = positionAssigner;
+                positionAssigner += 4;
+                break;
+            }
+            case string:
+            {
+                positionAssigner++; //starting null
+                entry->memoryPosition = positionAssigner;
+                positionAssigner += entry->initialString.size();
+                positionAssigner++; //ending null
+            }
+        }
     }
 }
 
@@ -127,56 +98,40 @@ std::string beautify(std::string finalCode)
     return finalCode;
 }
 
-std::string printMessage(int position = 0)
-{
-    return movTmp("[.>]<[<]>", position);
-}
-
 std::string generateBrainfuck()
 {
     std::string finalCode = "";
 
     // Initial setup
-    finalCode += "Setting up global variables\r\n";
 
-    for(VarEntry<int>* entry : numberTable)
+    for(VarEntry* entry : varTable)
     {
-        std::string tempCode = "";
-        tempCode += "integer variable \"" + entry->varName + "\": ";
-        tempCode += std::string((entry->initialValue >> 24) & 0xFF, '+') + movRight(1) + "\r\n";
-        tempCode += std::string((entry->initialValue >> 16) & 0xFF, '+') + movRight(1) + "\r\n";
-        tempCode += std::string((entry->initialValue >>  8) & 0xFF, '+') + movRight(1) + "\r\n";
-        tempCode += std::string((entry->initialValue >>  0) & 0xFF, '+') + movLeft(3)  + "\r\n";
-        finalCode += movTmp(tempCode, entry->memoryPosition);
-    }
-
-    for(VarEntry<std::string>* entry : cstringTable)
-    {
-        std::string tempCode = "";
-        tempCode += "\r\nstring const \"" + entry->varName + "\": ";
-        for(int i = 0; i < entry->initialValue.size(); i++)
+        switch(entry->valType)
         {
-            tempCode += std::string((int)entry->initialValue[i], '+');
-            tempCode += movRight(1) + " " + entry->initialValue[i] + "\r\n";
+            case number:
+            {
+                std::string tempCode = "";
+                tempCode += std::string((entry->initialNumber >> 24) & 0xFF, '+') + movRight(1);
+                tempCode += std::string((entry->initialNumber >> 16) & 0xFF, '+') + movRight(1);
+                tempCode += std::string((entry->initialNumber >>  8) & 0xFF, '+') + movRight(1);
+                tempCode += std::string((entry->initialNumber >>  0) & 0xFF, '+') + movLeft(3);
+                finalCode += movTmp(tempCode, entry->memoryPosition);
+                break;
+            }
+            case string:
+            {
+                std::string tempCode = "";
+                for(int i = 0; i < entry->initialString.size(); i++)
+                {
+                    tempCode += std::string((int)entry->initialString[i], '+');
+                    tempCode += movRight(1);
+                }
+                tempCode += movLeft(entry->initialString.size());
+                finalCode += movTmp(tempCode, entry->memoryPosition);
+            }
         }
-        tempCode += movLeft(entry->initialValue.size());
-        finalCode += movTmp(tempCode, entry->memoryPosition);
     }
-
-    for(VarEntry<std::string>* entry : stringTable)
-    {
-        std::string tempCode = "";
-        tempCode += "\r\nstring variable \"" + entry->varName + "\": ";
-        for(int i = 0; i < entry->initialValue.size(); i++)
-        {
-            tempCode += std::string((int)entry->initialValue[i], '+');
-            tempCode += movRight(1) + " " + entry->initialValue[i] + "\r\n";
-        }
-        tempCode += movLeft(entry->initialValue.size());
-        finalCode += movTmp(tempCode, entry->memoryPosition);
-    }
-
-    finalCode += "\r\n\r\n";
+    
     finalCode += start->process();
     finalCode = beautify(finalCode);
     return finalCode;

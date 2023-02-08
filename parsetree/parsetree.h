@@ -35,7 +35,7 @@ class ParseTree
     std::vector<ParseTree*> childNode;
 };
 
-#include "coutcstring.h"
-#include "coutstring.h"
+#include "print.h"
+#include "assignment.h"
 
 #endif //PARSETREE_H

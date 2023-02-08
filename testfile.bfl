@@ -1,4 +1,4 @@
 string strTest = "Three ";
 string strTestTwo = "Five ";
 number integer = 123456789;
-print << "One " << "Two " << strTest << "Four " << strTest << "Six ";
+print << "One " << "Two " << strTest << "Four " << strTestTwo << "Six ";

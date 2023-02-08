@@ -4,22 +4,36 @@
 #include <vector>
 #include <ostream>
 
-template<typename T> class VarEntry
+enum valueType
 {
-    public:
-    std::string varName;
-    T initialValue;
-    int memoryPosition = 0;
-    VarEntry(std::string varNameIn, T initialValueIn)
-    {
-        varName = varNameIn;
-        initialValue = initialValueIn;
-    }
+    number,
+    string
 };
 
-template<class T> inline std::ostream& operator<<(std::ostream& out, const VarEntry<T>& val){
-    out << "variable name (" << val.varName << ") - initial value (" << val.initialValue << ") - assigned position (" << val.memoryPosition << ")";
-    return out;
-}
+class VarEntry
+{
+    public:
+        std::string varName;
+
+        std::string initialString;
+        int initialNumber;
+        valueType valType;
+
+        int memoryPosition = 0;
+        
+        VarEntry(std::string varNameIn, std::string initialValueIn)
+        {
+            varName = varNameIn;
+            initialString = initialValueIn;
+            valType = string;
+        }
+
+        VarEntry(std::string varNameIn, int initialValueIn)
+        {
+            varName = varNameIn;
+            initialNumber = initialValueIn;
+            valType = number;
+        }
+};
 
 #endif //METADATA_H

@@ -10,16 +10,18 @@
 extern int maxSumLevels;
 extern int currentSumLevels;
 
-extern std::vector<VarEntry<int>*> numberTable;
-extern std::vector<VarEntry<std::string>*> stringTable;
-extern std::vector<VarEntry<std::string>*> cstringTable;
-
-extern std::vector<std::string> varNamesTable;
+extern std::vector<VarEntry*> varTable;
 
 extern ParseTree* start;
 
 void processData();
 std::string generateBrainfuck();
 std::string beautify(std::string finalCode);
-std::string printMessage(int position);
+
+#define movRight(delta) std::string(delta, '>')
+#define movLeft(delta) std::string(delta, '<')
+#define movTmp(scope, delta) movRight(delta) + scope + movLeft(delta)
+#define inc(amount) std::string(amount, '+')
+#define dec(amount) std::string(amount, '-')
+
 #endif //PROCESS_H
