@@ -3,7 +3,7 @@
 
 #include "print.h"
 #include "../process.h"
-
+#include "../highlevelfuncs.h"
 
 std::string printString(int position = 0)
 {

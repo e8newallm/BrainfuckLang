@@ -5,38 +5,11 @@
 #include "metadata.h"
 #include "parsetree/parsetree.h"
 #include "process.h"
-
-int maxSumLevels = 0;
-int currentSumLevels = 0;
+#include "highlevelfuncs.h"
 
 std::vector<VarEntry*> varTable;
 std::vector<std::string> varNamesTable;
 ParseTree* start;
-
-void processData()
-{
-    int positionAssigner = 0;
-
-    for(VarEntry* entry : varTable)
-    {
-        switch(entry->valType)
-        {
-            case number:
-            {
-                entry->memoryPosition = positionAssigner;
-                positionAssigner += 4;
-                break;
-            }
-            case string:
-            {
-                positionAssigner++; //starting null
-                entry->memoryPosition = positionAssigner;
-                positionAssigner += entry->initialString.size();
-                positionAssigner++; //ending null
-            }
-        }
-    }
-}
 
 void findAndReplaceAll(std::string& data, std::string toSearch, std::string replaceStr)
 {
@@ -48,7 +21,7 @@ void findAndReplaceAll(std::string& data, std::string toSearch, std::string repl
     }
 }
 
-std::string beautify(std::string finalCode)
+std::string optimise(std::string finalCode)
 {
     std::regex movReg("([>]+[<]+|[<]+[>]+)+[<>]*");
     std::smatch match;
@@ -102,7 +75,28 @@ std::string generateBrainfuck()
 {
     std::string finalCode = "";
 
-    // Initial setup
+    int positionAssigner = SpecialVarEnd;
+
+    for(VarEntry* entry : varTable)
+    {
+        switch(entry->valType)
+        {
+            case number:
+            {
+                entry->memoryPosition = positionAssigner;
+                positionAssigner += 4;
+                break;
+            }
+            case string:
+            {
+                positionAssigner++; //starting null
+
+                entry->memoryPosition = positionAssigner;
+                positionAssigner += entry->initialString.size();
+                positionAssigner++; //ending null
+            }
+        }
+    }
 
     for(VarEntry* entry : varTable)
     {
@@ -111,6 +105,7 @@ std::string generateBrainfuck()
             case number:
             {
                 std::string tempCode = "";
+                int tempVal = entry->initialNumber;
                 tempCode += std::string((entry->initialNumber >> 24) & 0xFF, '+') + movRight(1);
                 tempCode += std::string((entry->initialNumber >> 16) & 0xFF, '+') + movRight(1);
                 tempCode += std::string((entry->initialNumber >>  8) & 0xFF, '+') + movRight(1);
@@ -131,8 +126,13 @@ std::string generateBrainfuck()
             }
         }
     }
-    
+
     finalCode += start->process();
-    finalCode = beautify(finalCode);
+    std::string optimisedCode = optimise(finalCode);
+    while(optimisedCode != finalCode)
+    {
+        finalCode = optimisedCode;
+        optimisedCode = optimise(finalCode);
+    }
     return finalCode;
 }

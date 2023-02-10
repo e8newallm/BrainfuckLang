@@ -23,6 +23,7 @@
 ")"		                    {return T_RPAREN;}
 ";"                         {return T_SEMICOLON;}
 "="                         {return T_EQUALS;}
+"+="                        {return T_PLUSEQUALS;}
 "<<"                        {return T_OUTPUT;}
 
 "number"                    {return NUMBER;}

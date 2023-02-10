@@ -13,6 +13,7 @@ void yyerror(const char* s);
 #include "metadata.h"
 #include "process.h"
 #include "parsetree/parsetree.h"
+#include "highlevelfuncs.h"
 %}
 
 %code requires {
@@ -38,14 +39,14 @@ void yyerror(const char* s);
 %token<fval> T_FLOAT
 %token<sval> T_TEXT T_CSTRING
 
-%token T_PLUS T_MINUS T_ASTERISK T_BACKSLASH T_LPAREN T_RPAREN T_EQUALS T_QUOTE T_OUTPUT
+%token T_PLUS T_MINUS T_ASTERISK T_BACKSLASH T_LPAREN T_RPAREN T_EQUALS T_PLUSEQUALS T_QUOTE T_OUTPUT
 %token T_NEWLINE T_SEMICOLON
 
 %token NUMBER STRING PRINT
 
 %start program
 
-%type<tree> program statements statement printfunc printstatement
+%type<tree> program statements statement printfunc varAss varAdd printstatement
 
 %%
 
@@ -57,7 +58,9 @@ statements:
 
 statement: 
     varDec {$$ = new ParseTree();}
-    | printfunc {$$ = new ParseTree($1);};
+    | printfunc {$$ = new ParseTree($1);}
+    | varAss {$$ = new ParseTree($1);};
+    | varAdd {$$ = new ParseTree($1);};
 
 printfunc: PRINT printstatement {$$ = new ParseTree($2);};
 
@@ -93,9 +96,7 @@ printstatement: {$$ = new ParseTree();}
         }
     }
 
-varDec: numDec | strDec;
-
-strDec: 
+varDec: 
     STRING T_TEXT 
     {
         varTable.push_back(new VarEntry(std::string($2->pointer, $2->size), std::string("")));
@@ -109,8 +110,7 @@ strDec:
         delete((charSize*)$4);
     };
 
-numDec:
-    NUMBER T_TEXT
+    | NUMBER T_TEXT
     {
         varTable.push_back(new VarEntry(std::string($2->pointer, $2->size), 0));
         delete((charSize*)$2);
@@ -121,12 +121,92 @@ numDec:
         varTable.push_back(new VarEntry(std::string($2->pointer, $2->size), $4));
         delete((charSize*)$2);
     };
+
+varAss: 
+    T_TEXT T_EQUALS T_TEXT
+    {
+        std::string varName = std::string($1->pointer, $1->size);
+        VarEntry* firstVar;
+        VarEntry* secondVar;
+        bool varFound = false;
+        for(VarEntry* entry : varTable)
+        {
+            if(entry->varName == varName)
+            {
+                varFound = true;
+                firstVar = entry;
+                break;
+            }
+        }
+        if(!varFound)
+        {
+            yyerror("Var not found!");
+        }
+
+        varName = std::string($3->pointer, $3->size);
+        varFound = false;
+        for(VarEntry* entry : varTable)
+        {
+            if(entry->varName == varName)
+            {
+                varFound = true;
+                secondVar = entry;
+                break;
+            }
+        }
+        if(!varFound)
+        {
+            yyerror("Var not found!");
+        }
+        $$ = new Assignment(firstVar, secondVar);
+    }
+    
+    | T_TEXT T_EQUALS T_INT
+    {
+        std::string varName = std::string($1->pointer, $1->size);
+        bool varFound = false;
+        for(VarEntry* entry : varTable)
+        {
+            if(entry->varName == varName)
+            {
+                varFound = true;
+                $$ = new Assignment(entry, $3);
+                break;
+            }
+        }
+        if(!varFound)
+        {
+            yyerror("Var not found!");
+        }
+        
+    };
+
+varAdd:
+    T_TEXT T_PLUSEQUALS T_INT
+    {
+        std::string varName = std::string($1->pointer, $1->size);
+        bool varFound = false;
+        for(VarEntry* entry : varTable)
+        {
+            if(entry->varName == varName)
+            {
+                varFound = true;
+                $$ = new Assignment(entry, $3, add);
+                break;
+            }
+        }
+        if(!varFound)
+        {
+            yyerror("Var not found!");
+        }
+        
+    };
 %%
 
-int main() {
+int main()
+{
 	yyin = stdin;
 	yyparse();
-    processData();
     std::string result = generateBrainfuck();
     
     std::cout << result;
