@@ -1,13 +1,28 @@
+BINDIR = bin
+OBJDIR = obj
+
+SOURCES = $(wildcard parsetree/*.cpp)
+HEADERS = $(wildcard parsetree/*.h)
+OBJECTS = $(patsubst parsetree/%.cpp, $(OBJDIR)/parsetree/%.o, $(SOURCES))
+
 all: parse
 
-parse.tab.c parse.tab.h: metadata.h parse.y
-	bison -t -v -d parse.y
 
-lex.yy.c: parse.l parse.tab.h
-	flex parse.l
+$(OBJDIR)/parse.tab.c $(OBJDIR)/parse.tab.h: metadata.h parse.y
+	mkdir -p $(OBJDIR)
+	bison -t -v -d parse.y -b $(OBJDIR)/parse
 
-parse: lex.yy.c parse.tab.c parse.tab.h process.cpp process.h parsetree/*.cpp
-	g++ -o parse parse.tab.c lex.yy.c process.cpp parsetree/*.cpp
+$(OBJDIR)/lex.yy.c: $(OBJDIR)/parse.tab.c $(OBJDIR)/parse.tab.h parse.l
+	mkdir -p $(OBJDIR)
+	flex -o $@ parse.l
+
+$(OBJDIR)/parsetree/%.o: parsetree/%.cpp
+	mkdir -p $(OBJDIR)/parsetree
+	g++ -c $< -o $@
+
+parse: $(OBJDIR)/lex.yy.c $(OBJDIR)/parse.tab.c $(OBJDIR)/parse.tab.h $(OBJECTS) $(HEADERS) process.cpp process.h metadata.h
+	mkdir -p $(BINDIR)
+	g++ -o $(BINDIR)/parse -I . $^
 
 clean:
-	rm parse parse.tab.c lex.yy.c parse.tab.h parse.output
+	rm -r $(BINDIR) $(OBJDIR)
