@@ -1,7 +1,2 @@
-number oldValue = 123456789;
-number newValue = 987654321;
-number newNewValue = 111111111;
-oldValue = newValue;
-newValue = newNewValue;
-newNewValue = 50026;
-newNewValue += 101;
+number var = 5;
+var *= 3;

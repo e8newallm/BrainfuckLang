@@ -19,16 +19,30 @@ std::string Assignment::process()
 {
     if(varSource)
     {
-        return copyNum(varSource->memoryPosition, varDest->memoryPosition);
+        switch(type)
+        {
+            case equals:
+                return copyCell(varSource->memoryPosition, varDest->memoryPosition);
+            case add:
+                return addCell(varSource->memoryPosition, varDest->memoryPosition);
+            case sub:
+                return subCell(varSource->memoryPosition, varDest->memoryPosition);
+            case multiply:
+                return mulCell(varSource->memoryPosition, varDest->memoryPosition);
+        }
     }
     else
     {
         switch(type)
         {
             case equals:
-                return zeroNum(varDest->memoryPosition) + addConstNum(varDest->memoryPosition, valSource);
+                return zeroCell(varDest->memoryPosition) + addConst(valSource, varDest->memoryPosition);
             case add:
-                return addConstNum(varDest->memoryPosition, valSource);
+                return addConst(valSource, varDest->memoryPosition);
+            case sub:
+                return subConst(valSource, varDest->memoryPosition);
+            case multiply:
+                return mulConst(valSource, varDest->memoryPosition);
         }
     }
     return "";

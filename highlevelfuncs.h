@@ -3,8 +3,9 @@
 //Special variables
 const int nullCell = 0;
 const int cellBuffer = 1;
-const int numBuffer = 2;
-const int SpecialVarEnd = 6;
+const int leftParam = 2;
+const int rightParam = 3;
+const int SpecialVarEnd = 4;
 
 #define movRight(delta) std::string(delta, '>')
 #define movLeft(delta) std::string(delta, '<')
@@ -14,20 +15,22 @@ const int SpecialVarEnd = 6;
 #define inc(amount) std::string(amount, '+')
 #define dec(amount) std::string(amount, '-')
 
+
 #define zeroCell(cell) movTmp("[-]", cell)
-#define zeroNum(num) zeroCell(num+0) + zeroCell(num+1) + zeroCell(num+2) + zeroCell(num+3)
-#define copyCell(from, to) zeroCell(to) + \
-    movTmp("[-", from) + movTmp("+", cellBuffer) + movTmp("+", to) + movTmp("]", from) + \
-    movTmp("[-", cellBuffer) + movTmp("+", from) + movTmp("]", cellBuffer)
-#define copyNum(from, to) copyCell(from+0, to+0) + copyCell(from+1, to+1) + copyCell(from+2, to+2) + copyCell(from+3, to+3)
+#define copyCell(from, to) zeroCell(to) + movTmp("[-", from) + movTmp("+", cellBuffer) + movTmp("+", to) + movTmp("]", from) \
+                           + movTmp("[-", cellBuffer) + movTmp("+", from) + movTmp("]", cellBuffer)
+#define copySum(leftCell, rightCell) copyCell(leftCell, leftParam) + copyCell(rightCell, rightParam)
 
 #define addCell(from, to) \
-    movTmp("[-", from) + movTmp("+", cellBuffer) + movTmp("+", to) + movTmp("]", from) + \
-    movTmp("[-", cellBuffer) + movTmp("+", from) + movTmp("]", cellBuffer)
-#define addCellWithCarry(from, to) \
-    movTmp("[-", from) + movTmp("+", cellBuffer) + movTmp("+[<+>+]-", to) + movTmp("]", from) + \
-    movTmp("[-", cellBuffer) + movTmp("+", from) + movTmp("]", cellBuffer)
-#define copyAdd(from, to) addCell(from+0, to+0) + addCellWithCarry(from+1, to+1) + addCellWithCarry(from+2, to+2) + addCellWithCarry(from+3, to+3) 
+        movTmp("[-", from) + movTmp("+", cellBuffer) + movTmp("]", from) + \
+        movTmp("[-", cellBuffer) + movTmp("+", from) + movTmp("+", to) + movTmp("]", cellBuffer)
+#define subCell(from, to) \
+        movTmp("[-", from) + movTmp("+", cellBuffer) + movTmp("]", from) + \
+        movTmp("[-", cellBuffer) + movTmp("+", from) + movTmp("-", to) + movTmp("]", cellBuffer)
+#define mulCell(from, to) copySum(from, to) + zeroCell(to) + \
+        movTmp("[-" + addCell(leftParam, to) + "]", rightParam) + zeroCell(leftParam)
 
-#define addConstNum(to, value) movTmp(inc((valSource >> 24) & 0xFF) + ">" + inc((valSource >> 16) & 0xFF) \
-                                + ">" + inc((valSource >> 8) & 0xFF)+ ">" + inc((valSource >> 0) & 0xFF) + "<<<", to)
+#define addConst(value, to) movTmp(inc(value), to)
+#define subConst(value, to) movTmp(dec(value), to)
+#define mulConst(value, to) copyCell(to, leftParam) + addConst(rightParam, value) + zeroCell(to) + \
+        movTmp("[-" + addCell(leftParam, to) + "]", rightParam) + zeroCell(leftParam)

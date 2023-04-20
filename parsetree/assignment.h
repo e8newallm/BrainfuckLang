@@ -8,8 +8,11 @@
 
 enum SumType
 {
-    equals = 0,
-    add
+    equals,
+    add,
+    sub,
+    multiply,
+    divide
 };
 
 class Assignment : public ParseTree

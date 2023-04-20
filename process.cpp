@@ -84,7 +84,7 @@ std::string generateBrainfuck()
             case number:
             {
                 entry->memoryPosition = positionAssigner;
-                positionAssigner += 4;
+                positionAssigner++;
                 break;
             }
             case string:
@@ -106,10 +106,7 @@ std::string generateBrainfuck()
             {
                 std::string tempCode = "";
                 int tempVal = entry->initialNumber;
-                tempCode += std::string((entry->initialNumber >> 24) & 0xFF, '+') + movRight(1);
-                tempCode += std::string((entry->initialNumber >> 16) & 0xFF, '+') + movRight(1);
-                tempCode += std::string((entry->initialNumber >>  8) & 0xFF, '+') + movRight(1);
-                tempCode += std::string((entry->initialNumber >>  0) & 0xFF, '+') + movLeft(3);
+                tempCode += std::string((entry->initialNumber >>  0) & 0xFF, '+');
                 finalCode += movTmp(tempCode, entry->memoryPosition);
                 break;
             }

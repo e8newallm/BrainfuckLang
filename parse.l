@@ -24,6 +24,9 @@
 ";"                         {return T_SEMICOLON;}
 "="                         {return T_EQUALS;}
 "+="                        {return T_PLUSEQUALS;}
+"-="                        {return T_MINUSEQUALS;}
+"*="                        {return T_MULTIEQUALS;}
+"/="                        {return T_DIVIDEEQUALS;}
 "<<"                        {return T_OUTPUT;}
 
 "number"                    {return NUMBER;}
